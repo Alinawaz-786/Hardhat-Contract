@@ -156,6 +156,7 @@ contract squidGameTest is Ownable {
             _nftId,
             2
         );
+
         //Create Mapping for the Player which was paid the Fee
         GameMember memory _member = Player[playerId];
         uint256 currentVestingCount = nftHoldersCount[msg.sender];
@@ -167,20 +168,18 @@ contract squidGameTest is Ownable {
         emit EntryFee(playerId, _nftId,2);
     }
 
-
-
     /*
         0 --false-- Indicate left side
         1 --true-- Indicate right side
     */
     function participateInGame(
         bool _chooes_side,
-        bytes32 playerId,
-        uint256 _gameStatusCounter
+        bytes32 playerId
     ) public GameInitialized After24Hours(playerId) {
-
+        adminCounter = _adminCounter.current();
         GameMember memory _member = Player[playerId];
-        GameStatus memory _gameStatus = GameStatusInitialized[_gameStatusCounter];
+
+        GameStatus memory _gameStatus = GameStatusInitialized[adminCounter];
         start_period = block.timestamp;
 
         require(
@@ -214,14 +213,6 @@ contract squidGameTest is Ownable {
                 randomNumber = random() * 1e9;
                 _member.score = randomNumber;
             }
-
-            // use this private variable to check this (STAGES + LEVELSTAGES) constant value reach or not if reach then
-            //use  start the hybird Level
-
-            // if (hybirdLevelCounter <= 0) {
-            // hybirdLevelCounter = random() * 1e9;
-            // }
-
             _member.level = 2;
         }
 
