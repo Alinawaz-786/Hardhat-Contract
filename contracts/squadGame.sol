@@ -17,7 +17,7 @@ contract squidGameTest is Ownable {
     Counters.Counter private _adminCounter;
 
     uint256 private constant TURN_PERIOD = 30; //86400; // 24 HOURS
-    uint256 public start_period = 0; //
+    uint256 public start_period = 0; // first particpate time noted 
     uint256 private constant STAGES = 2; // 13 stages
     uint256 private constant LEVELSTAGES = 2; // 5 Level 2 stages
     // use this private variable to check this (STAGES + LEVELSTAGES) constant value reach or not if reach then
@@ -46,8 +46,6 @@ contract squidGameTest is Ownable {
     constructor(IERC20 _wrappedEther) {
         token = _wrappedEther;
     }
-
-    // uint256 public start_period = 0; // beacuse start_period period are noted in when Admin Game
 
     uint256 public randomNumber;
     uint256 public hybirdLevelCounter;
@@ -178,13 +176,11 @@ contract squidGameTest is Ownable {
     function participateInGame(
         bool _chooes_side,
         bytes32 playerId,
-        uint256 _adminMappingCounter
+        uint256 _gameStatusCounter
     ) public GameInitialized After24Hours(playerId) {
+
         GameMember memory _member = Player[playerId];
-        // uint256 calTimer = block.timestamp - _member.startAt;
-        // // Jump after 24 hours.
-        // require(calTimer >= 50, "Jump after 1 mintues.");
-        GameStatus memory _admin = GameStatusInitialized[_adminMappingCounter];
+        GameStatus memory _gameStatus = GameStatusInitialized[_gameStatusCounter];
         start_period = block.timestamp;
 
         require(
@@ -192,25 +188,18 @@ contract squidGameTest is Ownable {
             "You are Fail"
         );
 
-        if (_admin.GameLevel == 1) {
+        if (_gameStatus.GameLevel == 1) {
             require(STAGES >= _member.stage, "Reached maximum");
             if (randomNumber <= 0) {
                 randomNumber = random() * 1e9;
                 _member.score = randomNumber;
-                _member.chooes_side = _chooes_side;
             }
-            _member.day += 1;
 
-            //
             _member.level = 1;
-
-            // level update when check progress function run
-            _member.stage += 1;
-
             _member.startAt = block.timestamp;
-            _member.resumeStatus = true;
-        } else if (_admin.GameLevel == 2 && _admin.hybirdLevelStatus == true) {
-            // require(LEVELSTAGES >= _member.stage, "Reached maximum");
+
+        } else if (_gameStatus.GameLevel == 2 && _gameStatus.hybirdLevelStatus == true) {
+
             if (LEVELSTAGES <= _member.stage) {
                 if (hybirdLevelCounter > 0) {
                     require(
@@ -233,15 +222,15 @@ contract squidGameTest is Ownable {
             // hybirdLevelCounter = random() * 1e9;
             // }
 
-            _member.stage += 1;
             _member.level = 2;
-            _member.day += 1;
-            _member.chooes_side = _chooes_side;
         }
 
         // use this private variable to check this (STAGES + LEVELSTAGES) constant value reach or not if reach then
         //use  start the hybird Level
         _level += 1;
+            _member.stage += 1;
+            _member.day += 1;
+            _member.chooes_side = _chooes_side;
         Player[playerId] = _member;
     }
 
@@ -252,13 +241,13 @@ contract squidGameTest is Ownable {
         GameStatusInitialized[adminCounter] = _admin;
     }
 
-    // , uint256 _adminMappingCounter
+    // , uint256 _gameStatusCounter
     function checkProgres(bytes32 playerId)
         public
         returns (string memory, uint256)
     {
         uint256 period_differance = block.timestamp - start_period;
-        // GameStatus memory _admin = GameStatusInitialized[_adminMappingCounter];
+        // GameStatus memory _admin = GameStatusInitialized[_gameStatusCounter];
         if (period_differance > TURN_PERIOD) {
             // if (_admin.GameLevel == 1) {
             if (randomNumber > 50e9) {
